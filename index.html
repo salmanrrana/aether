@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<!--
+THESIS: An instrument you play on the open air — your hands become constellations
+on a living star atlas, and igniting stars makes sound. Refuses the category default
+(black void + neon skeleton debug overlay).
+OWN-WORLD: Antique celestial cartography fused with audio-reactive aurora. Deep
+indigo ground, engraved hairline declination rows labeled with star-catalog note
+names, spectral ignition hues (cyan/violet/magenta/gold), Marcellus display type.
+STORY: Visitor raises hands, sees themselves charted as constellations, opens a
+fist and hears a star ignite; moving hands apart audibly widens the light.
+FIRST VIEWPORT: Full-bleed chart. Faint mirrored camera ghost, hairline pitch rows
+with note labels left, hands as glowing constellations center, aurora waveform at
+the horizon, tuning panel folded right, wordmark top-left.
+FORM: Star-atlas instrument, rank 1 of derived list. Concept-seed intentionally
+not run: the world was brief-pinned (ethereal / out-of-this-world) and the surface
+precisely specified by the user's gesture spec, so this is a pinned direction,
+not an open roll.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ÆTHER — a gestural instrument</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #e3e9ff;
+    --ink-dim: #9aa3d0;
+    --ink-faint: #5b638f;
+    --ground: #04060f;
+    --hairline: rgba(190, 205, 255, 0.16);
+    --panel: rgba(7, 10, 26, 0.82);
+    --accent: #9db8ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Marcellus", Georgia, serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, select, input { font-family: inherit; color: inherit; }
+
+  video { position: absolute; visibility: hidden; width: 1px; height: 1px; }
+  #stage { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; }
+
+  /* ---------- wordmark + top chrome ---------- */
+  #chrome {
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; align-items: flex-start; justify-content: space-between;
+    padding: 22px 26px 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+  #wordmark { pointer-events: auto; }
+  #wordmark h1 {
+    font-size: 21px; font-weight: 400; letter-spacing: 0.34em; text-indent: 0.34em;
+  }
+  #wordmark p {
+    margin-top: 3px;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  #tuneToggle {
+    pointer-events: auto;
+    background: none; border: 1px solid var(--hairline);
+    padding: 9px 18px 8px;
+    font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--ink-dim); cursor: pointer;
+    transition: color 0.25s, border-color 0.25s;
+  }
+  #tuneToggle:hover, #tuneToggle:focus-visible { color: var(--ink); border-color: rgba(190,205,255,0.45); outline: none; }
+  #tuneToggle[aria-expanded="true"] { color: var(--ink); border-color: rgba(190,205,255,0.45); }
+
+  /* ---------- tuning panel ---------- */
+  #panel {
+    position: fixed; top: 70px; right: 26px; width: 268px;
+    background: var(--panel);
+    border: 1px solid var(--hairline);
+    padding: 22px 22px 20px;
+    z-index: 6;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+    transform: translateX(16px); opacity: 0; visibility: hidden;
+    transition: transform 0.35s cubic-bezier(0.16,1,0.3,1), opacity 0.3s, visibility 0.3s;
+  }
+  #panel::before {
+    content: ""; position: absolute; inset: 4px;
+    border: 1px solid rgba(190,205,255,0.07);
+    pointer-events: none;
+  }
+  #panel.open { transform: translateX(0); opacity: 1; visibility: visible; }
+  #panel h2 {
+    font-size: 12px; font-weight: 400; letter-spacing: 0.26em; text-transform: uppercase;
+    color: var(--ink-dim); margin-bottom: 18px;
+  }
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--ink-dim); margin-bottom: 7px;
+  }
+  .field label output { color: var(--ink); letter-spacing: 0.06em; }
+  .field select {
+    width: 100%; background: rgba(12,16,38,0.9);
+    border: 1px solid var(--hairline); padding: 8px 10px;
+    font-size: 13px; letter-spacing: 0.04em; cursor: pointer;
+  }
+  .field select:focus-visible { outline: 1px solid var(--accent); outline-offset: 1px; }
+  .scale-marks {
+    display: flex; justify-content: space-between;
+    margin-top: 3px; padding: 0 4px;
+  }
+  .scale-marks i {
+    width: 1px; height: 4px; background: rgba(190,205,255,0.28);
+  }
+  .scale-marks i:nth-child(3n+1) { height: 6px; }
+  input[type="range"] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 18px; background: transparent; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 1px; background: rgba(190,205,255,0.32);
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 11px; height: 11px; margin-top: -5px;
+    border-radius: 50%;
+    background: #eaf0ff;
+    box-shadow: 0 0 10px 2px rgba(157,184,255,0.55);
+  }
+  input[type="range"]::-moz-range-track { height: 1px; background: rgba(190,205,255,0.32); }
+  input[type="range"]::-moz-range-thumb {
+    width: 11px; height: 11px; border: none; border-radius: 50%;
+    background: #eaf0ff; box-shadow: 0 0 10px 2px rgba(157,184,255,0.55);
+  }
+  input[type="range"]:focus-visible { outline: 1px solid var(--accent); outline-offset: 4px; }
+  .toggle-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--ink-dim); padding-top: 4px; border-top: 1px solid var(--hairline); margin-top: 4px;
+  }
+  .toggle-row button {
+    background: none; border: 1px solid var(--hairline);
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 5px 12px 4px; margin-top: 8px; cursor: pointer; color: var(--ink-dim);
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .toggle-row button:hover { color: var(--ink); border-color: rgba(190,205,255,0.45); }
+  .toggle-row button[aria-pressed="true"] { color: var(--ink); border-color: rgba(157,184,255,0.7); }
+
+  /* ---------- gesture legend ---------- */
+  #legend {
+    position: fixed; left: 26px; bottom: 22px; z-index: 5;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-faint); line-height: 2.1;
+    pointer-events: none;
+    transition: opacity 1s;
+  }
+  #legend em { font-style: normal; color: var(--ink-dim); }
+
+  /* ---------- status line ---------- */
+  #status {
+    position: fixed; right: 26px; bottom: 22px; z-index: 5;
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--ink-faint); pointer-events: none; text-align: right;
+  }
+
+  /* ---------- entry overlay ---------- */
+  #veil {
+    position: fixed; inset: 0; z-index: 20;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    background: radial-gradient(120% 90% at 50% 8%, rgba(11,16,48,0.88) 0%, rgba(6,10,30,0.84) 40%, rgba(4,6,15,0.88) 78%);
+    transition: opacity 1.2s ease, visibility 1.2s;
+    padding: 24px;
+  }
+  #veil.gone { opacity: 0; visibility: hidden; }
+  #veil h1 {
+    font-size: clamp(52px, 9vw, 96px); font-weight: 400;
+    letter-spacing: 0.3em; text-indent: 0.3em;
+    background: none; color: var(--ink);
+    text-shadow: 0 0 46px rgba(130,160,255,0.35);
+  }
+  #veil > p.tag {
+    margin-top: 10px;
+    font-size: 13px; letter-spacing: 0.3em; text-transform: uppercase; text-indent: 0.3em;
+    color: var(--ink-dim);
+  }
+  #rite {
+    margin-top: 54px;
+    display: flex; gap: clamp(24px, 6vw, 76px); align-items: flex-start; justify-content: center;
+    flex-wrap: wrap;
+  }
+  .rune { width: 150px; }
+  .rune svg { display: block; margin: 0 auto 12px; overflow: visible; }
+  .rune p { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-dim); line-height: 1.8; }
+  #beginBtn {
+    margin-top: 56px;
+    background: none; cursor: pointer;
+    border: 1px solid rgba(190,205,255,0.4);
+    color: var(--ink);
+    font-size: 13px; letter-spacing: 0.34em; text-transform: uppercase; text-indent: 0.34em;
+    padding: 17px 44px 15px;
+    transition: box-shadow 0.4s, border-color 0.4s, transform 0.4s;
+  }
+  #beginBtn:hover, #beginBtn:focus-visible {
+    border-color: rgba(200,215,255,0.9);
+    box-shadow: 0 0 34px rgba(140,170,255,0.28), inset 0 0 18px rgba(140,170,255,0.12);
+    outline: none;
+  }
+  #beginBtn:disabled { opacity: 0.45; cursor: wait; box-shadow: none; }
+  #veil .fine {
+    margin-top: 26px;
+    font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  #veilStatus { margin-top: 14px; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-faint); min-height: 16px; }
+
+  /* ---------- error panel ---------- */
+  #trouble {
+    position: fixed; inset: 0; z-index: 30;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; background: rgba(4,6,15,0.94); padding: 24px;
+  }
+  #trouble.show { display: flex; }
+  #trouble h2 { font-size: 22px; font-weight: 400; letter-spacing: 0.2em; text-transform: uppercase; }
+  #trouble p { margin-top: 16px; max-width: 46ch; color: var(--ink-dim); font-size: 14px; line-height: 1.9; letter-spacing: 0.03em; }
+  #trouble button {
+    margin-top: 30px; background: none; border: 1px solid rgba(190,205,255,0.4);
+    padding: 13px 34px 11px; cursor: pointer;
+    font-size: 12px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--ink);
+  }
+  #trouble button:hover { border-color: rgba(200,215,255,0.9); }
+
+  @media (max-width: 640px) {
+    #panel { right: 12px; left: 12px; width: auto; }
+    #chrome { padding: 16px 16px 0; }
+    #legend { left: 16px; bottom: 14px; font-size: 9.5px; line-height: 2; }
+    #status { right: 16px; bottom: 96px; font-size: 9.5px; }
+    #rite { gap: 18px; }
+    .rune { width: 118px; }
+  }
+</style>
+</head>
+<body>
+
+<video id="cam" playsinline muted></video>
+<canvas id="stage"></canvas>
+
+<div id="chrome">
+  <div id="wordmark">
+    <h1>ÆTHER</h1>
+    <p>Star-atlas instrument</p>
+  </div>
+  <button id="tuneToggle" aria-expanded="false" aria-controls="panel">Tune</button>
+</div>
+
+<aside id="panel" aria-label="Tuning">
+  <h2>Observatory tuning</h2>
+  <div class="field">
+    <label for="scaleSel">Scale</label>
+    <select id="scaleSel"></select>
+  </div>
+  <div class="field">
+    <label for="rootSel">Root star</label>
+    <select id="rootSel"></select>
+  </div>
+  <div class="field">
+    <label for="spaceSl">Space <output id="spaceOut">70</output></label>
+    <input type="range" id="spaceSl" min="0" max="100" value="70">
+    <div class="scale-marks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
+  <div class="field">
+    <label for="shimSl">Shimmer reach <output id="shimOut">80</output></label>
+    <input type="range" id="shimSl" min="0" max="100" value="80">
+    <div class="scale-marks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
+  <div class="field">
+    <label for="glideSl">Glide <output id="glideOut">35</output></label>
+    <input type="range" id="glideSl" min="0" max="100" value="35">
+    <div class="scale-marks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
+  <div class="field">
+    <label for="volSl">Loudness <output id="volOut">75</output></label>
+    <input type="range" id="volSl" min="0" max="100" value="75">
+    <div class="scale-marks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
+  <div class="toggle-row">
+    <span>Camera ghost</span>
+    <button id="ghostBtn" aria-pressed="true">Visible</button>
+  </div>
+</aside>
+
+<div id="legend">
+  <em>Closed fist</em> — silence<br>
+  <em>Open fingers</em> — ignite stars<br>
+  <em>Hands apart</em> — solar shimmer · <em>height</em> — pitch
+</div>
+<div id="status" role="status"></div>
+
+<div id="veil">
+  <h1>ÆTHER</h1>
+  <p class="tag">An instrument played on the open air</p>
+  <div id="rite">
+    <div class="rune">
+      <svg width="72" height="72" viewBox="0 0 72 72" fill="none" stroke="#9db8ff" stroke-width="1">
+        <circle cx="36" cy="38" r="15" opacity="0.9"/>
+        <path d="M26 32 q10 -8 20 0" opacity="0.5"/>
+        <circle cx="36" cy="38" r="24" opacity="0.18" stroke-dasharray="2 5"/>
+      </svg>
+      <p>A closed fist<br>holds the silence</p>
+    </div>
+    <div class="rune">
+      <svg width="72" height="72" viewBox="0 0 72 72" fill="none" stroke="#9db8ff" stroke-width="1">
+        <path d="M36 58 V30 M24 56 V38 M48 56 V38 M17 54 V44 M55 54 V44" opacity="0.8"/>
+        <circle cx="36" cy="26" r="2.4" fill="#e3e9ff" stroke="none"/>
+        <circle cx="24" cy="34" r="1.8" fill="#8f7bff" stroke="none"/>
+        <circle cx="48" cy="34" r="1.8" fill="#6ee7ff" stroke="none"/>
+        <circle cx="17" cy="40" r="1.4" fill="#ff7bd5" stroke="none"/>
+        <circle cx="55" cy="40" r="1.4" fill="#ffc46e" stroke="none"/>
+      </svg>
+      <p>Each open finger<br>ignites a star</p>
+    </div>
+    <div class="rune">
+      <svg width="72" height="72" viewBox="0 0 72 72" fill="none" stroke="#9db8ff" stroke-width="1">
+        <circle cx="16" cy="36" r="6" opacity="0.9"/>
+        <circle cx="56" cy="36" r="6" opacity="0.9"/>
+        <path d="M24 36 H48" stroke-dasharray="1 4" opacity="0.7"/>
+        <path d="M30 30 q6 6 0 12 M42 30 q-6 6 0 12" opacity="0.35"/>
+      </svg>
+      <p>Distance between hands<br>bends the light</p>
+    </div>
+  </div>
+  <button id="beginBtn">Begin the observation</button>
+  <p id="veilStatus"></p>
+  <p class="fine">Your camera stays on this device. Nothing is recorded or sent anywhere.</p>
+</div>
+
+<div id="trouble">
+  <h2>The sky is veiled</h2>
+  <p id="troubleMsg"></p>
+  <button id="retryBtn">Try again</button>
+</div>
+
+<script type="module">
+/* ================================================================
+   ÆTHER — hand-tracked gestural instrument
+   MediaPipe HandLandmarker (vision tasks) + Web Audio
+   ================================================================ */
+
+const MP_VERSION = "0.10.14";
+const MODEL_URL = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
+
+/* ---------------- music theory ---------------- */
+const SCALES = {
+  "Celestial pentatonic": [0, 2, 4, 7, 9],
+  "Lydian dream":         [0, 2, 4, 6, 7, 9, 11],
+  "Dorian haze":          [0, 2, 3, 5, 7, 9, 10],
+  "Whole-tone drift":     [0, 2, 4, 6, 8, 10],
+  "Harmonic nebula":      [0, 2, 3, 5, 7, 8, 11],
+};
+const NOTE_NAMES = ["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"];
+const DEGREE_HUES = [190, 262, 318, 40, 152, 214, 288];
+const ROWS = 12;                       // pitch rows on the chart
+const FINGER_STEPS = [0, 1, 2, 3, 4];  // thumb..pinky, scale-degree offsets
+
+const settings = {
+  scale: "Celestial pentatonic",
+  rootMidi: 48,       // C3
+  space: 0.7,
+  shimmer: 0.8,
+  glide: 0.35,
+  volume: 0.75,
+  ghost: true,
+};
+
+function stepToMidi(step) {
+  const scale = SCALES[settings.scale];
+  const n = scale.length;
+  const oct = Math.floor(step / n);
+  const deg = ((step % n) + n) % n;
+  return settings.rootMidi + oct * 12 + scale[deg];
+}
+const midiToFreq = m => 440 * Math.pow(2, (m - 69) / 12);
+const midiToName = m => NOTE_NAMES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
+function stepHue(step) {
+  const n = SCALES[settings.scale].length;
+  return DEGREE_HUES[(((step % n) + n) % n) % DEGREE_HUES.length];
+}
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+
+/* ================================================================
+   AUDIO ENGINE
+   ================================================================ */
+let actx = null, master = null, analyser = null, reverbGain = null, delaySend = null;
+const voices = new Map();   // key "hand-finger" -> Voice
+
+function makeImpulse(ctx, seconds = 4.2, decay = 2.6) {
+  const rate = ctx.sampleRate, len = Math.floor(rate * seconds);
+  const buf = ctx.createBuffer(2, len, rate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch);
+    for (let i = 0; i < len; i++) {
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    }
+  }
+  return buf;
+}
+
+class Voice {
+  constructor(ctx, dest) {
+    const t = ctx.currentTime;
+    this.ctx = ctx;
+    this.active = false;
+    this.freq = 220;
+    this.label = "";
+    this.hue = 200;
+
+    this.env = ctx.createGain(); this.env.gain.value = 0;
+    this.filter = ctx.createBiquadFilter();
+    this.filter.type = "lowpass"; this.filter.frequency.value = 1200; this.filter.Q.value = 0.7;
+
+    this.oscA = ctx.createOscillator(); this.oscA.type = "sine";
+    this.oscB = ctx.createOscillator(); this.oscB.type = "triangle"; this.oscB.detune.value = 6;
+    this.gA = ctx.createGain(); this.gA.gain.value = 0.5;
+    this.gB = ctx.createGain(); this.gB.gain.value = 0.28;
+
+    // shimmer partial an octave up — grows with hand distance
+    this.shimOsc = ctx.createOscillator(); this.shimOsc.type = "sine";
+    this.shimGain = ctx.createGain(); this.shimGain.gain.value = 0;
+
+    // FM modulator — bell character when hands are far apart
+    this.mod = ctx.createOscillator(); this.mod.type = "sine";
+    this.modGain = ctx.createGain(); this.modGain.gain.value = 0;
+    this.mod.connect(this.modGain); this.modGain.connect(this.oscA.frequency);
+
+    // slow breath vibrato
+    this.lfo = ctx.createOscillator(); this.lfo.frequency.value = 4.6;
+    this.lfoGain = ctx.createGain(); this.lfoGain.gain.value = 2.2;
+    this.lfo.connect(this.lfoGain);
+    this.lfoGain.connect(this.oscA.detune); this.lfoGain.connect(this.oscB.detune);
+
+    this.oscA.connect(this.gA); this.oscB.connect(this.gB);
+    this.shimOsc.connect(this.shimGain);
+    this.gA.connect(this.filter); this.gB.connect(this.filter); this.shimGain.connect(this.filter);
+    this.filter.connect(this.env);
+    this.env.connect(dest);
+
+    for (const o of [this.oscA, this.oscB, this.shimOsc, this.mod, this.lfo]) o.start(t);
+  }
+  noteOn(freq, label, hue) {
+    const t = this.ctx.currentTime;
+    this.active = true; this.label = label; this.hue = hue;
+    this.freq = freq;
+    this.oscA.frequency.setValueAtTime(freq, t);
+    this.oscB.frequency.setValueAtTime(freq, t);
+    this.shimOsc.frequency.setValueAtTime(freq * 2, t);
+    this.mod.frequency.setValueAtTime(freq * 2.004, t);
+    this.env.gain.cancelScheduledValues(t);
+    this.env.gain.setTargetAtTime(0.16, t, 0.07);
+  }
+  glideTo(freq, tau) {
+    if (Math.abs(freq - this.freq) < 0.01) return;
+    const t = this.ctx.currentTime;
+    this.freq = freq;
+    this.oscA.frequency.setTargetAtTime(freq, t, tau);
+    this.oscB.frequency.setTargetAtTime(freq, t, tau);
+    this.shimOsc.frequency.setTargetAtTime(freq * 2, t, tau);
+    this.mod.frequency.setTargetAtTime(freq * 2.004, t, tau);
+  }
+  setMorph(m, shimmerAmt) {
+    const t = this.ctx.currentTime;
+    const shim = m * shimmerAmt;
+    this.shimGain.gain.setTargetAtTime(0.30 * shim, t, 0.12);
+    this.modGain.gain.setTargetAtTime(this.freq * 1.4 * m * shimmerAmt, t, 0.12);
+    this.oscB.detune.setTargetAtTime(6 + m * 16, t, 0.2);
+    this.filter.frequency.setTargetAtTime(
+      clamp(850 + m * 2800 + this.freq * 1.3, 400, 9000), t, 0.15);
+  }
+  noteOff() {
+    if (!this.active) return;
+    this.active = false;
+    const t = this.ctx.currentTime;
+    this.env.gain.cancelScheduledValues(t);
+    this.env.gain.setTargetAtTime(0, t, 0.32);
+  }
+  level() { return this.env.gain.value; }
+}
+
+function initAudio() {
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  master = actx.createGain(); master.gain.value = settings.volume;
+
+  const comp = actx.createDynamicsCompressor();
+  comp.threshold.value = -20; comp.knee.value = 22; comp.ratio.value = 5;
+
+  // dry
+  master.connect(comp);
+
+  // reverb
+  const convolver = actx.createConvolver();
+  convolver.buffer = makeImpulse(actx);
+  reverbGain = actx.createGain(); reverbGain.gain.value = settings.space * 0.9;
+  master.connect(convolver); convolver.connect(reverbGain); reverbGain.connect(comp);
+
+  // echo across the void
+  const delay = actx.createDelay(2); delay.delayTime.value = 0.42;
+  const fb = actx.createGain(); fb.gain.value = 0.34;
+  delaySend = actx.createGain(); delaySend.gain.value = 0.22;
+  master.connect(delaySend); delaySend.connect(delay);
+  delay.connect(fb); fb.connect(delay);
+  const delayOut = actx.createGain(); delayOut.gain.value = 0.5;
+  delay.connect(delayOut); delayOut.connect(convolver);
+
+  analyser = actx.createAnalyser(); analyser.fftSize = 1024;
+  comp.connect(analyser); analyser.connect(actx.destination);
+
+  for (const hand of [0, 1]) {
+    for (const finger of [0, 1, 2, 3, 4]) {
+      voices.set(`${hand}-${finger}`, new Voice(actx, master));
+    }
+  }
+}
+
+/* ================================================================
+   HAND TRACKING
+   ================================================================ */
+let landmarker = null, landmarkerReady = null;
+const video = document.getElementById("cam");
+
+async function loadLandmarker() {
+  const { FilesetResolver, HandLandmarker } = await import(
+    `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}`
+  );
+  const files = await FilesetResolver.forVisionTasks(
+    `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}/wasm`
+  );
+  landmarker = await HandLandmarker.createFromOptions(files, {
+    baseOptions: { modelAssetPath: MODEL_URL, delegate: "GPU" },
+    runningMode: "VIDEO",
+    numHands: 2,
+    minHandDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5,
+  });
+}
+
+async function startCamera() {
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+    audio: false,
+  });
+  video.srcObject = stream;
+  await new Promise(res => { video.onloadedmetadata = res; });
+  await video.play();
+}
+
+/* finger extension with hysteresis so notes don't flicker */
+const TIP = [4, 8, 12, 16, 20], PIP = [3, 6, 10, 14, 18];
+const fingerState = [ [0,0,0,0,0], [0,0,0,0,0] ];  // per hand slot
+
+function dist2d(a, b) { const dx = a.x - b.x, dy = a.y - b.y; return Math.hypot(dx, dy); }
+
+function readFingers(lm, slot) {
+  const wrist = lm[0];
+  const states = fingerState[slot];
+  for (let f = 0; f < 5; f++) {
+    let ratio;
+    if (f === 0) {
+      ratio = dist2d(lm[4], lm[17]) / (dist2d(lm[3], lm[17]) || 1e-4);
+    } else {
+      ratio = dist2d(lm[TIP[f]], wrist) / (dist2d(lm[PIP[f]], wrist) || 1e-4);
+    }
+    if (states[f] === 0 && ratio > 1.14) states[f] = 1;
+    else if (states[f] === 1 && ratio < 1.02) states[f] = 0;
+  }
+  return states;
+}
+
+function palmCenter(lm) {
+  return {
+    x: (lm[0].x + lm[5].x + lm[17].x) / 3,
+    y: (lm[0].y + lm[5].y + lm[17].y) / 3,
+  };
+}
+
+/* ================================================================
+   PERFORMANCE STATE — maps hands to voices each frame
+   ================================================================ */
+let morph = 0;            // 0 = hands close (nebula glass), 1 = far (solar bell)
+let morphTarget = 0;
+let handsInfo = [];       // for the renderer
+let lastHandSeen = 0;
+
+function performFrame(result, tMs) {
+  const wanted = new Set();
+  handsInfo = [];
+
+  const hands = [];
+  if (result && result.landmarks) {
+    for (let i = 0; i < result.landmarks.length; i++) {
+      const label = result.handednesses?.[i]?.[0]?.categoryName || "Right";
+      hands.push({ lm: result.landmarks[i], label });
+    }
+  }
+  // In the mirrored (selfie) view MediaPipe's image-"Right" is the user's LEFT hand.
+  // User's left hand = bass slot 0, right hand = treble slot 1.
+  hands.sort((a, b) => (a.label === "Right" ? 0 : 1) - (b.label === "Right" ? 0 : 1));
+
+  if (hands.length === 2) {
+    const d = dist2d(palmCenter(hands[0].lm), palmCenter(hands[1].lm));
+    morphTarget = clamp((d - 0.16) / 0.5, 0, 1);
+  } else {
+    morphTarget = 0;
+  }
+  morph = lerp(morph, morphTarget, 0.08);
+
+  const glideTau = 0.015 + settings.glide * 0.28;
+  const scaleLen = SCALES[settings.scale].length;
+
+  hands.forEach((hand, idx) => {
+    const slot = hands.length === 2 ? idx : (hand.label === "Right" ? 0 : 1);
+    const ext = readFingers(hand.lm, slot);
+    const py = palmCenter(hand.lm).y;
+    const baseStep = Math.round((1 - clamp(py, 0.05, 0.95)) / 0.9 * (ROWS - 1)) - Math.round(ROWS * 0.05);
+    const octShift = slot === 0 ? -scaleLen : 0;   // bass hand one octave down
+
+    const fingerVis = [];
+    for (let f = 0; f < 5; f++) {
+      const key = `${slot}-${f}`;
+      const on = ext[f] === 1;
+      const step = baseStep + FINGER_STEPS[f] + octShift;
+      const midi = stepToMidi(step);
+      const freq = midiToFreq(midi);
+      const hue = stepHue(step);
+      const v = voices.get(key);
+      if (on) {
+        wanted.add(key);
+        if (v) {
+          if (!v.active) {
+            v.noteOn(freq, midiToName(midi), hue);
+            fingerVis.push({ f, ignited: true, midi, hue });
+          } else {
+            v.glideTo(freq, glideTau);
+            v.label = midiToName(midi); v.hue = hue;
+            fingerVis.push({ f, ignited: false, midi, hue });
+          }
+          v.setMorph(morph, settings.shimmer);
+        }
+      }
+    }
+    handsInfo.push({ lm: hand.lm, slot, ext: [...ext], fingerVis, baseStep, octShift });
+    lastHandSeen = tMs;
+  });
+
+  for (const [key, v] of voices) {
+    if (v.active && !wanted.has(key)) v.noteOff();
+  }
+}
+
+function releaseAll() {
+  for (const v of voices.values()) v.noteOff();
+  handsInfo = [];
+}
+
+/* ================================================================
+   RENDERER — the living star atlas
+   ================================================================ */
+const canvas = document.getElementById("stage");
+const ctx2 = canvas.getContext("2d");
+let cw = 0, ch = 0, dpr = 1;
+
+function resize() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cw = window.innerWidth; ch = window.innerHeight;
+  canvas.width = cw * dpr; canvas.height = ch * dpr;
+  canvas.style.width = cw + "px"; canvas.style.height = ch + "px";
+  ctx2.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener("resize", resize);
+resize();
+
+/* mapping from normalized video coords to canvas (cover + mirror) */
+function toCanvas(pt) {
+  const vw = video.videoWidth || 1280, vh = video.videoHeight || 720;
+  const s = Math.max(cw / vw, ch / vh);
+  const ox = (cw - vw * s) / 2, oy = (ch - vh * s) / 2;
+  return { x: cw - (pt.x * vw * s + ox), y: pt.y * vh * s + oy };
+}
+
+const stars = Array.from({ length: 240 }, () => ({
+  x: Math.random(), y: Math.random(),
+  r: 0.4 + Math.random() * 1.3,
+  ph: Math.random() * Math.PI * 2,
+  sp: 0.3 + Math.random() * 1.2,
+}));
+
+// engraved catalog marks: circled stars, crosses, and double dots, as on old plates
+const catalogMarks = Array.from({ length: 26 }, (_, i) => ({
+  x: 0.06 + Math.random() * 0.88,
+  y: 0.08 + Math.random() * 0.78,
+  kind: i % 3,
+  s: 2.5 + Math.random() * 2,
+}));
+
+function drawPlateFrame() {
+  // double-ruled atlas plate border with corner marks
+  const m = 14;
+  ctx2.strokeStyle = "rgba(190,205,255,0.13)";
+  ctx2.lineWidth = 1;
+  ctx2.strokeRect(m, m, cw - m * 2, ch - m * 2);
+  ctx2.strokeStyle = "rgba(190,205,255,0.06)";
+  ctx2.strokeRect(m + 5, m + 5, cw - (m + 5) * 2, ch - (m + 5) * 2);
+  ctx2.strokeStyle = "rgba(190,205,255,0.22)";
+  ctx2.beginPath();
+  for (const [cx, cy, dx, dy] of [
+    [m, m, 1, 1], [cw - m, m, -1, 1], [m, ch - m, 1, -1], [cw - m, ch - m, -1, -1],
+  ]) {
+    ctx2.moveTo(cx, cy + dy * 12); ctx2.lineTo(cx, cy);
+    ctx2.lineTo(cx + dx * 12, cy);
+  }
+  ctx2.stroke();
+  // plate caption, engraver-style
+  ctx2.font = "10px Marcellus, Georgia, serif";
+  ctx2.fillStyle = "rgba(160,172,220,0.55)";
+  ctx2.textAlign = "center";
+  ctx2.fillText("TABULA ÆTHERIS · CARTA SONORA", cw / 2, ch - m - 8);
+  ctx2.textAlign = "left";
+}
+
+function drawCatalogMarks() {
+  ctx2.strokeStyle = "rgba(200,212,255,0.20)";
+  ctx2.fillStyle = "rgba(200,212,255,0.30)";
+  ctx2.lineWidth = 1;
+  for (const c of catalogMarks) {
+    const x = c.x * cw, y = c.y * ch;
+    if (c.kind === 0) {          // circled star
+      ctx2.beginPath(); ctx2.arc(x, y, c.s + 2, 0, Math.PI * 2); ctx2.stroke();
+      ctx2.beginPath(); ctx2.arc(x, y, 0.9, 0, Math.PI * 2); ctx2.fill();
+    } else if (c.kind === 1) {   // engraved cross
+      ctx2.beginPath();
+      ctx2.moveTo(x - c.s, y); ctx2.lineTo(x + c.s, y);
+      ctx2.moveTo(x, y - c.s); ctx2.lineTo(x, y + c.s);
+      ctx2.stroke();
+    } else {                     // double star
+      ctx2.beginPath(); ctx2.arc(x - 2, y, 0.9, 0, Math.PI * 2); ctx2.fill();
+      ctx2.beginPath(); ctx2.arc(x + 2, y, 0.9, 0, Math.PI * 2); ctx2.fill();
+    }
+  }
+}
+
+const particles = [];
+function spawnParticle(x, y, hue) {
+  if (particles.length > 380) return;
+  particles.push({
+    x, y,
+    vx: (Math.random() - 0.5) * 0.7,
+    vy: -0.4 - Math.random() * 0.9,
+    life: 1, hue,
+    size: 1 + Math.random() * 2.4,
+    wob: Math.random() * Math.PI * 2,
+  });
+}
+const novas = [];
+
+const HAND_BONES = [
+  [0,1],[1,2],[2,3],[3,4],
+  [0,5],[5,6],[6,7],[7,8],
+  [5,9],[9,10],[10,11],[11,12],
+  [9,13],[13,14],[14,15],[15,16],
+  [13,17],[17,18],[18,19],[19,20],
+  [0,17],
+];
+const FINGER_CHAIN = [ [1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,16], [17,18,19,20] ];
+
+let freqData = null, timeData = null;
+
+function audioEnergy() {
+  if (!analyser) return 0;
+  if (!freqData) freqData = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(freqData);
+  let s = 0; const n = Math.min(120, freqData.length);
+  for (let i = 0; i < n; i++) s += freqData[i];
+  return s / (n * 255);
+}
+
+function draw(tMs) {
+  const t = tMs / 1000;
+  const energy = audioEnergy();
+
+  // ground
+  ctx2.fillStyle = "#04060f";
+  ctx2.fillRect(0, 0, cw, ch);
+
+  // drifting nebulae — brighten with sound
+  const nebs = [
+    { x: 0.22 + 0.06 * Math.sin(t * 0.05), y: 0.3 + 0.05 * Math.cos(t * 0.04), r: 0.55, h: 232 },
+    { x: 0.78 + 0.05 * Math.cos(t * 0.037), y: 0.62 + 0.06 * Math.sin(t * 0.045), r: 0.6, h: 286 },
+    { x: 0.5 + 0.08 * Math.sin(t * 0.028), y: 0.85, r: 0.5, h: 195 },
+  ];
+  for (const n of nebs) {
+    const g = ctx2.createRadialGradient(n.x * cw, n.y * ch, 0, n.x * cw, n.y * ch, n.r * Math.max(cw, ch));
+    const a = 0.05 + energy * 0.1 + morph * 0.03;
+    g.addColorStop(0, `hsla(${n.h + morph * 40}, 70%, 55%, ${a})`);
+    g.addColorStop(1, "hsla(0,0%,0%,0)");
+    ctx2.fillStyle = g;
+    ctx2.fillRect(0, 0, cw, ch);
+  }
+
+  drawPlateFrame();
+  drawCatalogMarks();
+
+  // fixed stars
+  for (const s of stars) {
+    const a = 0.25 + 0.5 * (0.5 + 0.5 * Math.sin(t * s.sp + s.ph));
+    ctx2.fillStyle = `rgba(220,230,255,${a * 0.55})`;
+    ctx2.beginPath();
+    ctx2.arc(s.x * cw, s.y * ch, s.r, 0, Math.PI * 2);
+    ctx2.fill();
+  }
+
+  // camera ghost
+  if (settings.ghost && video.videoWidth) {
+    const vw = video.videoWidth, vh = video.videoHeight;
+    const s = Math.max(cw / vw, ch / vh);
+    const dw = vw * s, dh = vh * s;
+    ctx2.save();
+    ctx2.globalAlpha = 0.16;
+    ctx2.globalCompositeOperation = "screen";
+    ctx2.translate(cw, 0); ctx2.scale(-1, 1);
+    ctx2.drawImage(video, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+    ctx2.restore();
+    ctx2.fillStyle = "rgba(6,9,28,0.35)";
+    ctx2.fillRect(0, 0, cw, ch);
+  }
+
+  // ---- declination rows (pitch chart) ----
+  const padTop = ch * 0.09, padBot = ch * 0.16;
+  const usable = ch - padTop - padBot;
+  const activeSteps = new Set();
+  for (const v of voices.values()) if (v.active) activeSteps.add(v.label);
+
+  ctx2.textBaseline = "middle";
+  for (let r = 0; r < ROWS; r++) {
+    const y = padTop + (1 - r / (ROWS - 1)) * usable;
+    const midi = stepToMidi(r - Math.round(ROWS * 0.05));
+    const name = midiToName(midi);
+    const live = activeSteps.has(name) || activeSteps.has(midiToName(midi + 12)) || activeSteps.has(midiToName(midi - 12));
+    ctx2.strokeStyle = live
+      ? `hsla(${stepHue(r)}, 80%, 75%, 0.5)`
+      : "rgba(190,205,255,0.10)";
+    ctx2.lineWidth = live ? 1.2 : 1;
+    ctx2.beginPath();
+    ctx2.moveTo(74, y); ctx2.lineTo(cw - 30, y);
+    ctx2.stroke();
+    ctx2.font = "11px Marcellus, Georgia, serif";
+    ctx2.fillStyle = live ? `hsla(${stepHue(r)}, 85%, 80%, 0.95)` : "rgba(165,175,220,0.72)";
+    ctx2.fillText(name, 34, y);
+
+    // engraved minute ticks along each declination rule
+    ctx2.strokeStyle = live ? `hsla(${stepHue(r)}, 70%, 70%, 0.35)` : "rgba(190,205,255,0.09)";
+    ctx2.lineWidth = 1;
+    ctx2.beginPath();
+    const tickGap = (cw - 104) / 24;
+    for (let k = 0; k <= 24; k++) {
+      const tx = 74 + k * tickGap;
+      const th = k % 6 === 0 ? 5 : 2.5;
+      ctx2.moveTo(tx, y - th); ctx2.lineTo(tx, y + th);
+    }
+    ctx2.stroke();
+  }
+
+  // great-circle ecliptic arc across the plate
+  ctx2.save();
+  ctx2.strokeStyle = "rgba(190,205,255,0.08)";
+  ctx2.lineWidth = 1;
+  ctx2.setLineDash([1, 7]);
+  ctx2.beginPath();
+  ctx2.ellipse(cw * 0.5, ch * 1.55, cw * 0.72, ch * 1.18, 0, Math.PI * 1.08, Math.PI * 1.92);
+  ctx2.stroke();
+  ctx2.beginPath();
+  ctx2.ellipse(cw * 0.5, ch * -0.6, cw * 0.66, ch * 1.05, 0, Math.PI * 0.1, Math.PI * 0.9);
+  ctx2.stroke();
+  ctx2.setLineDash([]);
+  ctx2.restore();
+
+  // ---- shimmer measure between two hands ----
+  if (handsInfo.length === 2) {
+    const a = toCanvas(palmCenter(handsInfo[0].lm));
+    const b = toCanvas(palmCenter(handsInfo[1].lm));
+    ctx2.save();
+    ctx2.setLineDash([2, 6]);
+    ctx2.strokeStyle = `hsla(${210 + morph * 100}, 85%, 78%, ${0.2 + morph * 0.35})`;
+    ctx2.lineWidth = 1;
+    ctx2.beginPath(); ctx2.moveTo(a.x, a.y); ctx2.lineTo(b.x, b.y); ctx2.stroke();
+    ctx2.setLineDash([]);
+    const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2 - 12;
+    ctx2.font = "10px Marcellus, Georgia, serif";
+    ctx2.fillStyle = `hsla(${210 + morph * 100}, 80%, 82%, 0.8)`;
+    ctx2.textAlign = "center";
+    ctx2.fillText(`SHIMMER ${Math.round(morph * 100)}`, mx, my);
+    ctx2.textAlign = "left";
+    ctx2.restore();
+  }
+
+  // ---- hands as constellations ----
+  for (const hand of handsInfo) {
+    const pts = hand.lm.map(toCanvas);
+
+    ctx2.strokeStyle = "rgba(200,212,255,0.22)";
+    ctx2.lineWidth = 1;
+    ctx2.beginPath();
+    for (const [i, j] of HAND_BONES) {
+      ctx2.moveTo(pts[i].x, pts[i].y);
+      ctx2.lineTo(pts[j].x, pts[j].y);
+    }
+    ctx2.stroke();
+
+    for (const p of pts) {
+      ctx2.fillStyle = "rgba(225,233,255,0.5)";
+      ctx2.beginPath(); ctx2.arc(p.x, p.y, 1.6, 0, Math.PI * 2); ctx2.fill();
+    }
+
+    for (let f = 0; f < 5; f++) {
+      if (hand.ext[f] !== 1) continue;
+      const key = `${hand.slot}-${f}`;
+      const v = voices.get(key);
+      if (!v || !v.active) continue;
+      const chain = FINGER_CHAIN[f];
+      const tip = pts[chain[chain.length - 1]];
+      const hue = v.hue;
+      const lv = clamp(v.level() / 0.16, 0, 1);
+
+      ctx2.strokeStyle = `hsla(${hue}, 90%, 72%, ${0.35 + lv * 0.5})`;
+      ctx2.lineWidth = 1.6;
+      ctx2.beginPath();
+      ctx2.moveTo(pts[0].x, pts[0].y);
+      for (const i of chain) ctx2.lineTo(pts[i].x, pts[i].y);
+      ctx2.stroke();
+
+      const R = 14 + lv * 10 + energy * 8;
+      const g = ctx2.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, R);
+      g.addColorStop(0, `hsla(${hue}, 95%, 82%, ${0.75 * lv + 0.15})`);
+      g.addColorStop(0.4, `hsla(${hue}, 90%, 65%, ${0.3 * lv})`);
+      g.addColorStop(1, "hsla(0,0%,0%,0)");
+      ctx2.fillStyle = g;
+      ctx2.beginPath(); ctx2.arc(tip.x, tip.y, R, 0, Math.PI * 2); ctx2.fill();
+      ctx2.fillStyle = `rgba(255,255,255,${0.5 + lv * 0.5})`;
+      ctx2.beginPath(); ctx2.arc(tip.x, tip.y, 2.2, 0, Math.PI * 2); ctx2.fill();
+
+      // star-catalog label
+      ctx2.font = "12px Marcellus, Georgia, serif";
+      ctx2.fillStyle = `hsla(${hue}, 85%, 85%, ${0.5 + lv * 0.5})`;
+      ctx2.fillText(v.label, tip.x + 12, tip.y - 12);
+
+      if (Math.random() < 0.6) spawnParticle(tip.x, tip.y, hue);
+    }
+  }
+
+  // nova rings on ignition
+  for (const hand of handsInfo) {
+    for (const fv of hand.fingerVis) {
+      if (!fv.ignited) continue;
+      const chain = FINGER_CHAIN[fv.f];
+      const tip = toCanvas(hand.lm[chain[chain.length - 1]]);
+      novas.push({ x: tip.x, y: tip.y, r: 4, hue: fv.hue, a: 0.8 });
+    }
+  }
+  for (let i = novas.length - 1; i >= 0; i--) {
+    const n = novas[i];
+    n.r += 2.6; n.a *= 0.93;
+    if (n.a < 0.02) { novas.splice(i, 1); continue; }
+    ctx2.strokeStyle = `hsla(${n.hue}, 90%, 75%, ${n.a})`;
+    ctx2.lineWidth = 1.2;
+    ctx2.beginPath(); ctx2.arc(n.x, n.y, n.r, 0, Math.PI * 2); ctx2.stroke();
+  }
+
+  // particles — stardust rising from ignited fingertips
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.life -= 0.012;
+    if (p.life <= 0) { particles.splice(i, 1); continue; }
+    p.wob += 0.06;
+    p.x += p.vx + Math.sin(p.wob) * 0.35;
+    p.y += p.vy;
+    ctx2.fillStyle = `hsla(${p.hue}, 90%, 78%, ${p.life * 0.55})`;
+    ctx2.beginPath();
+    ctx2.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    ctx2.fill();
+  }
+
+  // ---- aurora horizon (live waveform) ----
+  if (analyser) {
+    if (!timeData) timeData = new Uint8Array(analyser.fftSize);
+    analyser.getByteTimeDomainData(timeData);
+    const baseY = ch - 84;
+    const amp = 34 + energy * 60;
+    const hue = 200 + morph * 96;
+    for (const pass of [
+      { w: 9, a: 0.10 }, { w: 4, a: 0.22 }, { w: 1.4, a: 0.85 },
+    ]) {
+      ctx2.strokeStyle = pass.w > 2
+        ? `hsla(${hue}, 90%, 65%, ${pass.a})`
+        : `hsla(${hue}, 60%, 88%, ${pass.a})`;
+      ctx2.lineWidth = pass.w;
+      ctx2.beginPath();
+      const step = Math.max(1, Math.floor(timeData.length / cw * 2));
+      for (let i = 0, x = 0; i < timeData.length; i += step, x += (cw * step) / timeData.length) {
+        const y = baseY + ((timeData[i] - 128) / 128) * amp;
+        i === 0 ? ctx2.moveTo(x, y) : ctx2.lineTo(x, y);
+      }
+      ctx2.stroke();
+    }
+  }
+}
+
+/* ================================================================
+   MAIN LOOP
+   ================================================================ */
+const statusEl = document.getElementById("status");
+let running = false, lastVideoTime = -1, lastResult = null;
+
+function loop(tMs) {
+  if (!running) return;
+  if (landmarker && video.currentTime !== lastVideoTime) {
+    lastVideoTime = video.currentTime;
+    try {
+      lastResult = landmarker.detectForVideo(video, performance.now());
+    } catch (e) { /* transient frame decode issues — keep the loop alive */ }
+  }
+  if (lastResult) performFrame(lastResult, tMs);
+
+  const anyHands = handsInfo.length > 0;
+  if (!anyHands) {
+    releaseAll();
+    statusEl.textContent = tMs - lastHandSeen > 2500 ? "Raise your hands into view" : "";
+  } else {
+    const held = [...voices.values()].filter(v => v.active).length;
+    statusEl.textContent = held === 0 ? "Fists closed — silence held" : "";
+  }
+
+  draw(tMs);
+  requestAnimationFrame(loop);
+}
+
+/* ================================================================
+   UI WIRING
+   ================================================================ */
+const panel = document.getElementById("panel");
+const tuneToggle = document.getElementById("tuneToggle");
+tuneToggle.addEventListener("click", () => {
+  const open = panel.classList.toggle("open");
+  tuneToggle.setAttribute("aria-expanded", String(open));
+});
+
+const scaleSel = document.getElementById("scaleSel");
+for (const name of Object.keys(SCALES)) {
+  const o = document.createElement("option");
+  o.value = name; o.textContent = name;
+  scaleSel.appendChild(o);
+}
+scaleSel.value = settings.scale;
+scaleSel.addEventListener("change", () => { settings.scale = scaleSel.value; });
+
+const rootSel = document.getElementById("rootSel");
+for (let m = 43; m <= 55; m++) {
+  const o = document.createElement("option");
+  o.value = m; o.textContent = midiToName(m);
+  rootSel.appendChild(o);
+}
+rootSel.value = settings.rootMidi;
+rootSel.addEventListener("change", () => { settings.rootMidi = parseInt(rootSel.value, 10); });
+
+function bindSlider(id, outId, fn) {
+  const el = document.getElementById(id), out = document.getElementById(outId);
+  el.addEventListener("input", () => {
+    out.textContent = el.value;
+    fn(el.value / 100);
+  });
+}
+bindSlider("spaceSl", "spaceOut", v => {
+  settings.space = v;
+  if (reverbGain) reverbGain.gain.setTargetAtTime(v * 0.9, actx.currentTime, 0.1);
+  if (delaySend) delaySend.gain.setTargetAtTime(0.05 + v * 0.25, actx.currentTime, 0.1);
+});
+bindSlider("shimSl", "shimOut", v => { settings.shimmer = v; });
+bindSlider("glideSl", "glideOut", v => { settings.glide = v; });
+bindSlider("volSl", "volOut", v => {
+  settings.volume = v;
+  if (master) master.gain.setTargetAtTime(v, actx.currentTime, 0.05);
+});
+
+const ghostBtn = document.getElementById("ghostBtn");
+ghostBtn.addEventListener("click", () => {
+  settings.ghost = !settings.ghost;
+  ghostBtn.setAttribute("aria-pressed", String(settings.ghost));
+  ghostBtn.textContent = settings.ghost ? "Visible" : "Hidden";
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) releaseAll();
+});
+
+/* ================================================================
+   ENTRY
+   ================================================================ */
+const veil = document.getElementById("veil");
+const beginBtn = document.getElementById("beginBtn");
+const veilStatus = document.getElementById("veilStatus");
+const trouble = document.getElementById("trouble");
+const troubleMsg = document.getElementById("troubleMsg");
+const retryBtn = document.getElementById("retryBtn");
+
+// start charting the model immediately — the veil hides the wait
+landmarkerReady = loadLandmarker().catch(e => { throw e; });
+landmarkerReady.catch(() => {}); // surfaced on Begin
+
+// the atlas already breathes beneath the translucent veil
+function ambient(tMs) {
+  if (running) return;
+  draw(tMs);
+  requestAnimationFrame(ambient);
+}
+requestAnimationFrame(ambient);
+
+function fail(msg) {
+  trouble.classList.add("show");
+  troubleMsg.textContent = msg;
+  beginBtn.disabled = false;
+  beginBtn.textContent = "Begin the observation";
+}
+
+retryBtn.addEventListener("click", () => {
+  trouble.classList.remove("show");
+  beginBtn.click();
+});
+
+beginBtn.addEventListener("click", async () => {
+  beginBtn.disabled = true;
+  beginBtn.textContent = "Opening the dome…";
+  try {
+    if (!actx) initAudio();
+    if (actx.state === "suspended") await actx.resume();
+  } catch (e) {
+    return fail("The audio engine could not start. Try a current version of Chrome, Edge, or Firefox.");
+  }
+  try {
+    veilStatus.textContent = "Requesting the camera…";
+    await startCamera();
+  } catch (e) {
+    if (!window.isSecureContext) {
+      return fail("Cameras only open on a secure page. Serve this file over http://localhost (for example: python3 -m http.server) or HTTPS, then reload.");
+    }
+    return fail("Camera access was declined or no camera was found. Allow the camera in your browser's site permissions, then try again — the picture never leaves this device.");
+  }
+  try {
+    veilStatus.textContent = "Charting the constellations…";
+    await landmarkerReady;
+  } catch (e) {
+    return fail("The hand-tracking model could not load. Check your internet connection and reload — the model streams once from a CDN, then plays locally.");
+  }
+  veil.classList.add("gone");
+  running = true;
+  lastHandSeen = performance.now();
+  requestAnimationFrame(loop);
+});
+</script>
+</body>
+</html>
