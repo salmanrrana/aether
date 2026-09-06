@@ -50,3 +50,10 @@ One HTML file. No build, no dependencies to install.
 - [MediaPipe tasks-vision](https://www.npmjs.com/package/@mediapipe/tasks-vision) 0.10.14 for hand tracking
 - Web Audio API — 10-voice synth (dual osc + shimmer partial + FM), convolution reverb, feedback delay, compressor
 - Canvas 2D — engraved star-atlas plate, constellation hands, nova rings, stardust, audio-reactive aurora horizon
+# Local checks
+
+Run `npm install` once to install the lint/format tools and enable the tracked
+pre-commit hook. `npm run check:fast` lints the JavaScript embedded in
+`index.html` as well as the Node tooling. The hook checks staged source with
+Prettier, then runs the whole fast check so deletions cannot bypass validation.
+This incremental adoption avoids reformatting the single-file site wholesale.
